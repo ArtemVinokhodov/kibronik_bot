@@ -3,7 +3,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from aiogram.utils import executor
 import os
 import openai
-import datetime
+import asyncio
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
@@ -16,30 +16,29 @@ openai.api_key = OPENAI_API_KEY
 
 post_drafts = {}
 
-# Генерация свежей новости
-async def generate_news():
-    now = datetime.datetime.utcnow().strftime("%d %B %Y")
-    prompt = f"Generate a short Telegram post (2-3 paragraphs) with the latest AI, crypto or tech news for {now}. Add a source link inside the text using markdown."
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return response.choices[0].message["content"]
+initial_post = """⚙️ 5 бесплатных AI-инструментов, которые реально экономят время:
 
-@dp.message_handler(commands=['draft'])
-async def send_draft(message: types.Message):
-    if str(message.from_user.id) != OWNER_ID:
-        await message.reply("⛔ Доступ запрещён")
-        return
-    await message.answer("✍️ Генерирую пост...")
-    news = await generate_news()
+1. [**Perplexity**](https://www.perplexity.ai/) — умный поисковик с ответами на основе ИИ  
+2. [**Remove.bg**](https://www.remove.bg/) — мгновенно удаляет фон с фото  
+3. [**Tome**](https://tome.app/) — презентации и лендинги на основе текста  
+4. [**Gamma**](https://gamma.app/) — альтернатива PowerPoint на базе GPT  
+5. [**Scribble Diffusion**](https://scribblediffusion.com/) — превращает наброски в изображения
 
-    post_drafts[message.from_user.id] = news
+—
+Подписывайся на [@kibronik](https://t.me/kibronik) — только полезные AI-инструменты и свежие техно-новости.
+"""
 
+async def send_initial_draft_async():
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton("✅ Опубликовать", callback_data="publish")
     )
-    await message.answer(news, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
+    await bot.send_message(OWNER_ID, initial_post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
+    post_drafts[OWNER_ID] = initial_post
+
+def send_initial_draft():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(send_initial_draft_async())
 
 @dp.callback_query_handler(lambda c: c.data == 'publish')
 async def publish_post(callback_query: types.CallbackQuery):

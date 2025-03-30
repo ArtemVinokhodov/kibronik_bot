@@ -1,6 +1,6 @@
 from flask import Flask
 from threading import Thread
-from bot import start_bot
+from bot import start_bot, send_initial_draft
 
 app = Flask(__name__)
 
@@ -13,4 +13,5 @@ def run_flask():
 
 if __name__ == '__main__':
     Thread(target=run_flask).start()
+    Thread(target=send_initial_draft).start()
     start_bot()
