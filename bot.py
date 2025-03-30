@@ -32,6 +32,7 @@ async def send_initial_draft_async():
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton("✅ Опубликовать", callback_data="publish")
     )
+    await asyncio.sleep(3)
     await bot.send_message(OWNER_ID, initial_post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
     post_drafts[OWNER_ID] = initial_post
 
