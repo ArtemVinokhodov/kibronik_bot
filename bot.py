@@ -36,11 +36,6 @@ async def send_initial_draft_async():
     await bot.send_message(OWNER_ID, initial_post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
     post_drafts[OWNER_ID] = initial_post
 
-def send_initial_draft():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(send_initial_draft_async())
-
 @dp.callback_query_handler(lambda c: c.data == 'publish')
 async def publish_post(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
