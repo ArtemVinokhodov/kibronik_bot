@@ -81,3 +81,4 @@ def start_bot():
         host=WEBAPP_HOST,
         port=WEBAPP_PORT,
     )
+__all__ = ["dp", "on_startup"]
