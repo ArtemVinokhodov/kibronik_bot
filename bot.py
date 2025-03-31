@@ -1,12 +1,11 @@
 import logging
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InputMediaPhoto
-from aiogram.utils.executor import start_webhook
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 import os
 
 TOKEN = os.getenv("BOT_TOKEN")
-OWNER_ID = os.getenv("OWNER_ID")
-CHANNEL_ID = os.getenv("CHANNEL_ID")
+OWNER_ID = int(os.getenv("OWNER_ID"))
+CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -22,11 +21,9 @@ def generate_post():
 4. [Hacker News Trends](https://hntrends.com) — отслеживает популярные темы HN.  
 5. [IdeaBuddy](https://ideabuddy.com) — помогает превратить идею в бизнес.
 
-Подписывайся на [@kibronik](https://t.me/kibronik) — чтобы не пропустить новые инструменты.
-'''
+Подписывайся на [@kibronik](https://t.me/kibronik) — чтобы не пропустить новые инструменты.'''
 
 preview_image = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png"
-
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
@@ -34,19 +31,23 @@ async def start(message: types.Message):
 
 @dp.callback_query_handler(lambda c: c.data == "publish")
 async def publish_post(callback_query: types.CallbackQuery):
+    print("🔔 Нажата кнопка Опубликовать")  # лог для отладки
+
     user_id = callback_query.from_user.id
     post = post_drafts.get(user_id)
+
     if not post:
+        print("❌ Черновик не найден для user_id:", user_id)
         await callback_query.answer("❌ Черновик не найден", show_alert=True)
         return
 
     try:
         await bot.send_message(chat_id=CHANNEL_ID, text=post, parse_mode=ParseMode.MARKDOWN)
         await callback_query.message.edit_text("✅ Пост опубликован в канал!")
+        print("✅ Публикация отправлена в канал")
     except Exception as e:
         await callback_query.message.answer(f"❌ Ошибка при публикации: {e}")
         print("Ошибка при публикации в канал:", e)
-
 
 @dp.callback_query_handler(lambda c: c.data == "regenerate")
 async def regenerate_post(callback_query: types.CallbackQuery):
@@ -68,24 +69,10 @@ async def on_startup(dispatcher):
         InlineKeyboardButton("♻️ Обновить", callback_data="regenerate")
     )
     await bot.send_photo(chat_id=OWNER_ID, photo=preview_image, caption=post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
-    post_drafts[int(OWNER_ID)] = post
+    post_drafts[OWNER_ID] = post
 
 async def on_shutdown(dispatcher):
     logging.warning("Shutting down...")
     await bot.session.close()
 
-WEBHOOK_PATH = ''
-WEBAPP_HOST = "0.0.0.0"
-WEBAPP_PORT = 10000
-
-def start_bot():
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        skip_updates=True,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
-__all__ = ["dp", "on_startup"]
+__all__ = ["dp", "on_startup", "bot", "on_shutdown"]
