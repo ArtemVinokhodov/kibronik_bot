@@ -37,10 +37,16 @@ async def publish_post(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
     post = post_drafts.get(user_id)
     if not post:
-        await callback_query.answer("Черновик не найден", show_alert=True)
+        await callback_query.answer("❌ Черновик не найден", show_alert=True)
         return
-    await bot.send_message(chat_id=CHANNEL_ID, text="🧪 Тест: бот может писать в канал!", parse_mode=ParseMode.MARKDOWN)
-    await callback_query.message.edit_text("✅ Пост опубликован в канал!")
+
+    try:
+        await bot.send_message(chat_id=CHANNEL_ID, text=post, parse_mode=ParseMode.MARKDOWN)
+        await callback_query.message.edit_text("✅ Пост опубликован в канал!")
+    except Exception as e:
+        await callback_query.message.answer(f"❌ Ошибка при публикации: {e}")
+        print("Ошибка при публикации в канал:", e)
+
 
 @dp.callback_query_handler(lambda c: c.data == "regenerate")
 async def regenerate_post(callback_query: types.CallbackQuery):
