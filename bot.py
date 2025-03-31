@@ -25,7 +25,7 @@ def generate_post():
 Подписывайся на [@kibronik](https://t.me/kibronik) — чтобы не пропустить новые инструменты.
 '''
 
-preview_image = "https://images.unsplash.com/photo-1581090700227-1e8b42e62b2b"
+preview_image = "https://cdn.openai.com/chatgpt/marketing/ChatGPT_logo.png"
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
