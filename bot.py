@@ -29,12 +29,14 @@ initial_post = """⚙️ 5 бесплатных AI-инструментов, к�
 """
 
 async def send_initial_draft_async():
+    print("📨 Старт отправки черновика")
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton("✅ Опубликовать", callback_data="publish")
     )
     await asyncio.sleep(3)
     await bot.send_message(OWNER_ID, initial_post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
     post_drafts[OWNER_ID] = initial_post
+
 
 @dp.callback_query_handler(lambda c: c.data == 'publish')
 async def publish_post(callback_query: types.CallbackQuery):
