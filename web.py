@@ -1,20 +1,36 @@
+import logging
 import asyncio
-from aiogram import executor
-from bot import dp, on_startup
+from aiohttp import web
+from aiogram.utils.executor import start_webhook
+from bot import dp, on_startup, on_shutdown
+
+WEBHOOK_PATH = ''
+WEBAPP_HOST = '0.0.0.0'
+WEBAPP_PORT = 10000
+
+async def handle(request):
+    return web.Response(text="Bot is live!")
 
 async def start():
-    from aiohttp import web
     app = web.Application()
-    # Просто для проверки: пусть root отдает OK
-    app.router.add_get("/", lambda request: web.Response(text="Bot is live!"))
+    app.router.add_get("/", handle)
+
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 10000)
+    site = web.TCPSite(runner, WEBAPP_HOST, WEBAPP_PORT)
     await site.start()
-    await on_startup(dp)
-    # Не polling! Мы запускаем webhook (косвенно)
-    while True:
-        await asyncio.sleep(3600)
+
+    print("🚀 Starting aiogram webhook...")
+    await start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        skip_updates=True,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT
+    )
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(start())
