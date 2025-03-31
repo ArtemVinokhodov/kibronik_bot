@@ -39,7 +39,9 @@ async def publish_post(callback_query: types.CallbackQuery):
     if not post:
         await callback_query.answer("Черновик не найден", show_alert=True)
         return
-    await bot.send_photo(chat_id=CHANNEL_ID, photo=preview_image, caption=post, parse_mode=ParseMode.MARKDOWN)
+    await bot.send_message(chat_id=CHANNEL_ID, text="🧪 Тест: бот может писать в канал!", parse_mode=ParseMode.MARKDOWN)
+``
+
     await callback_query.message.edit_text("✅ Пост опубликован в канал!")
 
 @dp.callback_query_handler(lambda c: c.data == "regenerate")
