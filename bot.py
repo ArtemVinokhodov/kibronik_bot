@@ -1,60 +1,62 @@
+import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
-from aiogram.utils import executor
+from aiogram.utils.executor import start_webhook
 import os
-import openai
-import asyncio
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL_ID = os.getenv("CHANNEL_ID")
+TOKEN = os.getenv("BOT_TOKEN")
 OWNER_ID = os.getenv("OWNER_ID")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-openai.api_key = OPENAI_API_KEY
+
+initial_post = '''🧠 5 бесплатных AI-инструментов для поиска стартапов:
+
+1. **Trends.co** — показывает растущие тренды и идеи.
+2. **Glasp** — подборки статей и видео по трендам.
+3. **There's an AI for That** — каталог всех AI-сервисов.
+4. **Hacker News Trends** — отслеживает популярные темы HN.
+5. **IdeaBuddy** — помогает превратить идею в бизнес.
+
+Подробности и ссылки — в первом комментарии.'''
 
 post_drafts = {}
 
-initial_post = """⚙️ 5 бесплатных AI-инструментов, которые реально экономят время:
+@dp.message_handler(commands=["start"])
+async def start(message: types.Message):
+    await message.answer("Привет! Я бот канала Kibronik.")
 
-1. [**Perplexity**](https://www.perplexity.ai/) — умный поисковик с ответами на основе ИИ  
-2. [**Remove.bg**](https://www.remove.bg/) — мгновенно удаляет фон с фото  
-3. [**Tome**](https://tome.app/) — презентации и лендинги на основе текста  
-4. [**Gamma**](https://gamma.app/) — альтернатива PowerPoint на базе GPT  
-5. [**Scribble Diffusion**](https://scribblediffusion.com/) — превращает наброски в изображения
+@dp.message_handler()
+async def echo(message: types.Message):
+    await message.answer(f"Ты написал: {message.text}")
 
-—
-Подписывайся на [@kibronik](https://t.me/kibronik) — только полезные AI-инструменты и свежие техно-новости.
-"""
+@dp.callback_query_handler(lambda c: c.data == "publish")
+async def publish_post(callback_query: types.CallbackQuery):
+    await bot.send_message(chat_id="@kibronik", text=post_drafts.get(callback_query.from_user.id, ""), parse_mode=ParseMode.MARKDOWN)
+    await callback_query.message.edit_text("✅ Опубликовано!")
 
-async def send_initial_draft_async():
-    print("📨 Старт отправки черновика")
+async def on_startup(dispatcher):
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton("✅ Опубликовать", callback_data="publish")
     )
-    await asyncio.sleep(3)
     await bot.send_message(OWNER_ID, initial_post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
-    post_drafts[OWNER_ID] = initial_post
+    post_drafts[int(OWNER_ID)] = initial_post
 
+async def on_shutdown(dispatcher):
+    logging.warning("Shutting down..")
 
-@dp.callback_query_handler(lambda c: c.data == 'publish')
-async def publish_post(callback_query: types.CallbackQuery):
-    user_id = callback_query.from_user.id
-    if str(user_id) != OWNER_ID:
-        await callback_query.answer("⛔ Не авторизован", show_alert=True)
-        return
-    post = post_drafts.get(user_id)
-    if not post:
-        await callback_query.answer("Пост не найден", show_alert=True)
-        return
-
-    await bot.send_message(CHANNEL_ID, post, parse_mode=ParseMode.MARKDOWN)
-    await callback_query.answer("✅ Пост опубликован в канал!")
-    del post_drafts[user_id]
+WEBHOOK_PATH = ''
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+WEBAPP_HOST = "0.0.0.0"
+WEBAPP_PORT = 10000
 
 def start_bot():
-    executor.start_polling(dp)
-
-if __name__ == "__main__":
-    start_bot()
+    start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        skip_updates=True,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
