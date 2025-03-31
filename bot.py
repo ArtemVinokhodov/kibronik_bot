@@ -72,6 +72,7 @@ async def on_startup(dispatcher):
 
 async def on_shutdown(dispatcher):
     logging.warning("Shutting down...")
+    await bot.session.close()
 
 WEBHOOK_PATH = ''
 WEBAPP_HOST = "0.0.0.0"
