@@ -18,4 +18,3 @@ def run_flask():
 if __name__ == '__main__':
     Thread(target=run_flask).start()
     start_bot()
-
