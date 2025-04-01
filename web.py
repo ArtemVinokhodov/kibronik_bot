@@ -2,6 +2,7 @@ import logging
 import os
 import asyncio
 from aiohttp import web
+from aiogram import types
 from bot import dp, bot, on_startup, on_shutdown
 
 WEBHOOK_HOST = 'https://kibronik-bot.onrender.com'
