@@ -44,7 +44,9 @@ async def publish_post(callback_query: types.CallbackQuery):
         return
     try:
         await bot.send_photo(chat_id=CHANNEL_ID, photo=preview_image, caption=post, parse_mode=ParseMode.MARKDOWN)
-        await callback_query.message.edit_text("Пост опубликован в канал!")
+        await callback_query.message.delete()
+        await bot.send_message(chat_id=user_id, text="✅ Пост опубликован в канал!")
+
     except Exception as e:
         logging.error("Ошибка публикации: %s", e)
         await bot.send_message(user_id, f"Ошибка при публикации: {e}")
