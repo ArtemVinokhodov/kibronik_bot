@@ -1,4 +1,3 @@
-flask
 aiogram==2.25.1
-openai
-aiohttp
+aiohttp==3.8.6
+python-dotenv
