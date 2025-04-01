@@ -8,6 +8,7 @@ OWNER_ID = os.getenv("OWNER_ID")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 bot = Bot(token=TOKEN)
+bot.set_current(bot)
 dp = Dispatcher(bot)
 
 post_drafts = {}
