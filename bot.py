@@ -1,20 +1,20 @@
 import logging
-import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+import os
 
 TOKEN = os.getenv("BOT_TOKEN")
-OWNER_ID = os.getenv("OWNER_ID")
+OWNER_ID = int(os.getenv("OWNER_ID"))
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 bot = Bot(token=TOKEN)
-bot.set_current(bot)
+Bot.set_current(bot)  # Фикс для контекста
 dp = Dispatcher(bot)
 
 post_drafts = {}
 
 def generate_post():
-    return '''🧠 5 бесплатных AI-инструментов для поиска стартапов:
+    return """🧠 5 бесплатных AI-инструментов для поиска стартапов:
 
 1. [Trends.co](https://trends.co) — показывает растущие тренды и идеи.  
 2. [Glasp](https://glasp.co) — подборки статей и видео по трендам.  
@@ -22,7 +22,9 @@ def generate_post():
 4. [Hacker News Trends](https://hntrends.com) — отслеживает популярные темы HN.  
 5. [IdeaBuddy](https://ideabuddy.com) — помогает превратить идею в бизнес.
 
-Подписывайся на [@kibronik](https://t.me/kibronik) — чтобы не пропустить новые инструменты.'''
+Подписывайся на [@kibronik](https://t.me/kibronik) — чтобы не пропустить новые инструменты."""
+
+preview_image = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png"
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
@@ -35,35 +37,20 @@ async def publish_post(callback_query: types.CallbackQuery):
     if not post:
         await callback_query.answer("❌ Черновик не найден", show_alert=True)
         return
-
     try:
-        await bot.send_message(chat_id=CHANNEL_ID, text=post, parse_mode=ParseMode.MARKDOWN)
+        await bot.send_photo(chat_id=CHANNEL_ID, photo=preview_image, caption=post, parse_mode=ParseMode.MARKDOWN)
         await callback_query.message.edit_text("✅ Пост опубликован в канал!")
     except Exception as e:
-        await callback_query.message.answer(f"❌ Ошибка при публикации: {e}")
-        logging.error("Ошибка при публикации в канал: %s", e)
-
-@dp.callback_query_handler(lambda c: c.data == "regenerate")
-async def regenerate_post(callback_query: types.CallbackQuery):
-    user_id = callback_query.from_user.id
-    new_post = generate_post()
-    markup = InlineKeyboardMarkup().add(
-        InlineKeyboardButton("✅ Опубликовать", callback_data="publish"),
-        InlineKeyboardButton("♻️ Обновить", callback_data="regenerate")
-    )
-    await bot.send_message(user_id, new_post, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
-    post_drafts[user_id] = new_post
-    await callback_query.answer("🔁 Черновик обновлён")
+        print("Ошибка:", e)
 
 async def on_startup(dispatcher):
-    logging.info("📨 Бот запущен, отправка первого черновика...")
+    print("📨 Бот запущен, отправка первого черновика...")
     post = generate_post()
     markup = InlineKeyboardMarkup().add(
-        InlineKeyboardButton("✅ Опубликовать", callback_data="publish"),
-        InlineKeyboardButton("♻️ Обновить", callback_data="regenerate")
+        InlineKeyboardButton("✅ Опубликовать", callback_data="publish")
     )
-    await bot.send_message(chat_id=OWNER_ID, text=post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
-    post_drafts[int(OWNER_ID)] = post
+    await bot.send_photo(chat_id=OWNER_ID, photo=preview_image, caption=post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
+    post_drafts[OWNER_ID] = post
 
 async def on_shutdown(dispatcher):
     logging.warning("Shutting down...")
