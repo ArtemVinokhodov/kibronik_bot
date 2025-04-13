@@ -22,22 +22,13 @@ logging.basicConfig(level=logging.INFO)
 async def create_post(request):
     logging.info("💡 POST /create_post triggered")
     try:
-        body = await request.text()
-        logging.info(f"🔍 Request body: {body}")
+        body = await request.read()
+        body_str = body.decode("utf-8")  # 🛠️ Декодируем как UTF-8
+        logging.info(f"🔍 Request body: {body_str}")
 
-        data = json.loads(body)
+        data = json.loads(body_str)
         post_text = data.get("text")
         image_path = data.get("image_path", "images/my_image.png")
-        image_data = data.get("image_data")
-
-        # Сохраняем картинку в файл до проверки
-        if image_data:
-            try:
-                with open(image_path, "wb") as f:
-                    f.write(bytes(image_data))
-                logging.info("🖼️ Картинка сохранена в images/my_image.png")
-            except Exception as e:
-                logging.error(f"❌ Ошибка при сохранении изображения: {e}")
 
         if not post_text or not os.path.isfile(image_path):
             logging.error("❌ Отсутствует текст или изображение")
@@ -47,19 +38,16 @@ async def create_post(request):
             InlineKeyboardButton("Опубликовать", callback_data="publish")
         )
 
-        try:
-            with open(image_path, "rb") as image:
-                await bot.send_photo(
-                    chat_id=OWNER_ID,
-                    photo=image,
-                    caption=post_text,
-                    parse_mode=types.ParseMode.MARKDOWN,
-                    reply_markup=markup
-                )
-            logging.info("✅ Пост успешно отправлен в Telegram")
-        except Exception as telegram_error:
-            logging.error(f"⚠️ Ошибка отправки сообщения в Telegram: {telegram_error}")
-            return web.json_response({"error": str(telegram_error)}, status=500)
+        with open(image_path, "rb") as image:
+            await bot.send_photo(
+                chat_id=OWNER_ID,
+                photo=image,
+                caption=post_text,
+                parse_mode=None,  # 🛠️ Отключаем Markdown, чтобы не ломало кириллицу
+                reply_markup=markup
+            )
+
+        logging.info("✅ Пост успешно отправлен в Telegram")
 
         post_drafts[OWNER_ID] = {
             "text": post_text,
