@@ -1,0 +1,15 @@
+# Virtual environments
+.venv/
+.venv_kibronik/
+venv/
+__pycache__/
+
+# Environment files
+.env
+
+# PyCharm
+.idea/
+
+# System
+.DS_Store
+Thumbs.db
