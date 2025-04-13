@@ -51,7 +51,10 @@ async def create_post(request):
             logging.error(f"⚠️ Ошибка отправки сообщения в Telegram: {telegram_error}")
             return web.json_response({"error": str(telegram_error)}, status=500)
 
-        post_drafts[OWNER_ID] = post_text
+        post_drafts[OWNER_ID] = {
+            "text": post_text,
+            "image_path": image_path
+        }
 
         return web.json_response({"status": "ok"}, status=200)
 
