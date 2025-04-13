@@ -28,6 +28,16 @@ async def create_post(request):
         data = json.loads(body)
         post_text = data.get("text")
         image_path = data.get("image_path", "images/my_image.png")
+        image_data = data.get("image_data")
+
+        # Сохраняем картинку в файл до проверки
+        if image_data:
+            try:
+                with open(image_path, "wb") as f:
+                    f.write(bytes(image_data))
+                logging.info("🖼️ Картинка сохранена в images/my_image.png")
+            except Exception as e:
+                logging.error(f"❌ Ошибка при сохранении изображения: {e}")
 
         if not post_text or not os.path.isfile(image_path):
             logging.error("❌ Отсутствует текст или изображение")
