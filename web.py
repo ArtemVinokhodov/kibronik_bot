@@ -1,10 +1,48 @@
 import logging
 import os
 from aiohttp import web
-from aiogram import types
-from bot import dp, on_startup, on_shutdown
+from aiogram import types, Bot
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
+from bot import dp, on_startup, on_shutdown, post_drafts
+from dotenv import load_dotenv
+
+load_dotenv()
+
+TOKEN = os.getenv("BOT_TOKEN")
+OWNER_ID = int(os.getenv("OWNER_ID"))
+
+bot = Bot(token=TOKEN)
 
 logging.basicConfig(level=logging.INFO)
+
+async def create_post(request):
+    try:
+        data = await request.json()
+        post_text = data.get("text")
+        image_url = data.get("image_url")
+
+        if not post_text or not image_url:
+            return web.json_response({"error": "Не передан текст или изображение"}, status=400)
+
+        markup = InlineKeyboardMarkup().add(
+            InlineKeyboardButton("Опубликовать", callback_data="publish")
+        )
+
+        await bot.send_photo(
+            chat_id=OWNER_ID,
+            photo=image_url,
+            caption=post_text,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=markup
+        )
+
+        post_drafts[OWNER_ID] = post_text
+
+        return web.json_response({"status": "ok"}, status=200)
+
+    except Exception as e:
+        logging.error(f"Ошибка при создании поста через API: {e}")
+        return web.json_response({"error": str(e)}, status=500)
 
 async def handle_root(request):
     return web.Response(text="Bot is alive!")
@@ -24,12 +62,14 @@ async def start():
     app.router.add_get("/", handle_root)
     app.router.add_post("/", handle_webhook)
 
+    # новый API-эндпоинт здесь
+    app.router.add_post("/create_post", create_post)
+
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 10000)
     await site.start()
 
-    from bot import bot
     webhook_url = "https://kibronik-bot.onrender.com"
     await bot.set_webhook(webhook_url)
     logging.info(f"Webhook установлен: {webhook_url}")
