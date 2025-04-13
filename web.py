@@ -22,26 +22,32 @@ async def create_post(request):
         image_url = data.get("image_url")
 
         if not post_text or not image_url:
+            logging.error("Отсутствует текст или изображение")
             return web.json_response({"error": "Не передан текст или изображение"}, status=400)
 
         markup = InlineKeyboardMarkup().add(
             InlineKeyboardButton("Опубликовать", callback_data="publish")
         )
 
-        await bot.send_photo(
-            chat_id=OWNER_ID,
-            photo=image_url,
-            caption=post_text,
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=markup
-        )
+        try:
+            await bot.send_photo(
+                chat_id=OWNER_ID,
+                photo=image_url,
+                caption=post_text,
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=markup
+            )
+            logging.info("Пост успешно отправлен в Telegram")
+        except Exception as telegram_error:
+            logging.error(f"Ошибка отправки сообщения в Telegram: {telegram_error}")
+            return web.json_response({"error": str(telegram_error)}, status=500)
 
         post_drafts[OWNER_ID] = post_text
 
         return web.json_response({"status": "ok"}, status=200)
 
     except Exception as e:
-        logging.error(f"Ошибка при создании поста через API: {e}")
+        logging.error(f"Ошибка обработки запроса в create_post: {e}")
         return web.json_response({"error": str(e)}, status=500)
 
 async def handle_root(request):
