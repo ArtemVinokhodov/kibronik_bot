@@ -19,17 +19,6 @@ post_drafts = {}
 
 preview_image = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png"
 
-def generate_post():
-    return """5 бесплатных AI-инструментов для поиска стартапов:
-
-1. [Trends.co](https://trends.co) - показывает растущие тренды и идеи.  
-2. [Glasp](https://glasp.co) - подборки статей и видео по трендам.  
-3. [There’s an AI for That](https://theresanaiforthat.com) - каталог всех AI-сервисов.  
-4. [Hacker News Trends](https://hntrends.com) - отслеживает популярные темы HN.  
-5. [IdeaBuddy](https://ideabuddy.com) - помогает превратить идею в бизнес.
-
-Подписывайся на [@kibronik](https://t.me/kibronik) - чтобы не пропустить новые инструменты.
-"""
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
@@ -52,13 +41,7 @@ async def publish_post(callback_query: types.CallbackQuery):
         await bot.send_message(user_id, f"Ошибка при публикации: {e}")
 
 async def on_startup(dispatcher):
-    logging.info("Бот запущен, отправка первого черновика...")
-    post = generate_post()
-    markup = InlineKeyboardMarkup().add(
-        InlineKeyboardButton("Опубликовать", callback_data="publish")
-    )
-    await bot.send_photo(chat_id=OWNER_ID, photo=preview_image, caption=post, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
-    post_drafts[OWNER_ID] = post
+    logging.info("Бот запущен.")
 
 async def on_shutdown(dispatcher):
     logging.warning("Бот остановлен.")
