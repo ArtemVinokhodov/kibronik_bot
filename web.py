@@ -27,10 +27,10 @@ async def create_post(request):
 
         data = json.loads(body)
         post_text = data.get("text")
-        image_url = data.get("image_url")
+        image_path = data.get("image_path")
 
-        if not post_text or not image_url:
-            logging.error("❌ Отсутствует текст или изображение")
+        if not post_text or not image_path:
+            logging.error("❌ Отсутствует текст или путь к изображению")
             return web.json_response({"error": "Не передан текст или изображение"}, status=400)
 
         markup = InlineKeyboardMarkup().add(
@@ -38,13 +38,14 @@ async def create_post(request):
         )
 
         try:
-            await bot.send_photo(
-                chat_id=OWNER_ID,
-                photo=image_url,
-                caption=post_text,
-                parse_mode=types.ParseMode.MARKDOWN,
-                reply_markup=markup
-            )
+            with open(image_path, "rb") as img:
+                await bot.send_photo(
+                    chat_id=OWNER_ID,
+                    photo=img,
+                    caption=post_text,
+                    parse_mode=types.ParseMode.MARKDOWN,
+                    reply_markup=markup
+                )
             logging.info("✅ Пост успешно отправлен в Telegram")
         except Exception as telegram_error:
             logging.error(f"⚠️ Ошибка отправки сообщения в Telegram: {telegram_error}")
