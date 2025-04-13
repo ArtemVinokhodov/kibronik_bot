@@ -27,10 +27,10 @@ async def create_post(request):
 
         data = json.loads(body)
         post_text = data.get("text")
-        image_path = data.get("image_path")
+        image_path = data.get("image_path", "images/my_image.png")
 
-        if not post_text or not image_path:
-            logging.error("❌ Отсутствует текст или путь к изображению")
+        if not post_text or not os.path.isfile(image_path):
+            logging.error("❌ Отсутствует текст или изображение")
             return web.json_response({"error": "Не передан текст или изображение"}, status=400)
 
         markup = InlineKeyboardMarkup().add(
@@ -38,10 +38,10 @@ async def create_post(request):
         )
 
         try:
-            with open(image_path, "rb") as img:
+            with open(image_path, "rb") as image:
                 await bot.send_photo(
                     chat_id=OWNER_ID,
-                    photo=img,
+                    photo=image,
                     caption=post_text,
                     parse_mode=types.ParseMode.MARKDOWN,
                     reply_markup=markup
