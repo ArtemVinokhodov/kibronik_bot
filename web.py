@@ -1,5 +1,7 @@
 import logging
 import os
+import json
+
 from aiohttp import web
 from aiogram import types, Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
@@ -17,7 +19,10 @@ logging.basicConfig(level=logging.INFO)
 
 async def create_post(request):
     try:
-        data = await request.json()
+        body = await request.text()
+        logging.info(f"POST /create_post получен raw: {body}")
+
+        data = json.loads(body)
         post_text = data.get("text")
         image_url = data.get("image_url")
 
