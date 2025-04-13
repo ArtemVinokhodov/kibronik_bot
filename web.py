@@ -3,8 +3,10 @@ import os
 import json
 
 from aiohttp import web
-from aiogram import types, Bot
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
+from aiogram import Bot
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import types
+
 from bot import dp, on_startup, on_shutdown, post_drafts
 from dotenv import load_dotenv
 
@@ -39,7 +41,7 @@ async def create_post(request):
                 chat_id=OWNER_ID,
                 photo=image_url,
                 caption=post_text,
-                parse_mode=ParseMode.MARKDOWN,
+                parse_mode=types.ParseMode.MARKDOWN,
                 reply_markup=markup
             )
             logging.info("Пост успешно отправлен в Telegram")
