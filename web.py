@@ -20,16 +20,17 @@ bot = Bot(token=TOKEN)
 logging.basicConfig(level=logging.INFO)
 
 async def create_post(request):
+    logging.info("💡 POST /create_post triggered")
     try:
         body = await request.text()
-        logging.info(f"POST /create_post получен raw: {body}")
+        logging.info(f"🔍 Request body: {body}")
 
         data = json.loads(body)
         post_text = data.get("text")
         image_url = data.get("image_url")
 
         if not post_text or not image_url:
-            logging.error("Отсутствует текст или изображение")
+            logging.error("❌ Отсутствует текст или изображение")
             return web.json_response({"error": "Не передан текст или изображение"}, status=400)
 
         markup = InlineKeyboardMarkup().add(
@@ -44,9 +45,9 @@ async def create_post(request):
                 parse_mode=types.ParseMode.MARKDOWN,
                 reply_markup=markup
             )
-            logging.info("Пост успешно отправлен в Telegram")
+            logging.info("✅ Пост успешно отправлен в Telegram")
         except Exception as telegram_error:
-            logging.error(f"Ошибка отправки сообщения в Telegram: {telegram_error}")
+            logging.error(f"⚠️ Ошибка отправки сообщения в Telegram: {telegram_error}")
             return web.json_response({"error": str(telegram_error)}, status=500)
 
         post_drafts[OWNER_ID] = post_text
@@ -54,7 +55,7 @@ async def create_post(request):
         return web.json_response({"status": "ok"}, status=200)
 
     except Exception as e:
-        logging.error(f"Ошибка обработки запроса в create_post: {e}")
+        logging.error(f"🔥 Ошибка обработки запроса в create_post: {e}")
         return web.json_response({"error": str(e)}, status=500)
 
 async def handle_root(request):
@@ -67,7 +68,7 @@ async def handle_webhook(request):
         await dp.process_update(update)
         return web.Response(status=200, text="OK")
     except Exception as e:
-        logging.error("Ошибка обработки запроса от Telegram", exc_info=e)
+        logging.error("❗ Ошибка обработки запроса от Telegram", exc_info=e)
         return web.Response(status=500, text="Internal Server Error")
 
 async def start():
@@ -75,7 +76,6 @@ async def start():
     app.router.add_get("/", handle_root)
     app.router.add_post("/", handle_webhook)
 
-    # новый API-эндпоинт здесь
     app.router.add_post("/create_post", create_post)
 
     runner = web.AppRunner(app)
@@ -85,8 +85,8 @@ async def start():
 
     webhook_url = "https://kibronik-bot.onrender.com"
     await bot.set_webhook(webhook_url)
-    logging.info(f"Webhook установлен: {webhook_url}")
-    logging.info("Bot is running via webhook on Render...")
+    logging.info(f"🔗 Webhook установлен: {webhook_url}")
+    logging.info("🚀 Bot is running via webhook on Render...")
 
     await on_startup(dp)
 
