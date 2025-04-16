@@ -15,3 +15,6 @@ __pycache__/
 Thumbs.db
 
 post.json
+
+# Скрываем приватную документацию
+docs_private/
