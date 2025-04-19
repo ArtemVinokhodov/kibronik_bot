@@ -40,7 +40,7 @@ async def publish_post(callback_query: types.CallbackQuery):
                 photo=image,
                 caption=post_text,
                 #parse_mode=ParseMode.MARKDOWN
-                parse_mode=ParseMode.MARKDOWN_V2
+                parse_mode=ParseMode.HTML
             )
         await callback_query.message.delete()
         await bot.send_message(chat_id=user_id, text="✅ Пост опубликован в канал!")
