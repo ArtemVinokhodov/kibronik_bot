@@ -43,7 +43,8 @@ async def create_post(request):
                 chat_id=OWNER_ID,
                 photo=image,
                 caption=post_text,
-                parse_mode=None,  # 🛠️ Отключаем Markdown, чтобы не ломало кириллицу
+                #parse_mode=None,  # 🛠️ Отключаем Markdown, чтобы не ломало кириллицу
+                parse_mode=types.ParseMode.HTML,
                 reply_markup=markup
             )
 
